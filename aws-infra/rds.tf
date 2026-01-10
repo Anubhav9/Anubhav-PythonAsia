@@ -22,5 +22,6 @@ resource "aws_db_instance" "python_asia_talk_rds_instance" {
   tags ={
     Name = "${var.python_asia_nomenclature}-database"
   }
+  skip_final_snapshot = true
   
 }

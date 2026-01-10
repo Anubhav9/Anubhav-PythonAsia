@@ -13,19 +13,19 @@ variable "python_asia_nomenclature" {
 variable "private_subnet_cidr" {
   type = string
   description = "CIDR block for Private Subnet"
-  default = "10.0.20.0/24"
+  default = "10.0.16.0/22"
 }
 
 variable "private_subnet_cidr_2" {
   type = string
   description = "CIDR block for Private Subnet"
-  default = "10.0.21.0/24"
+  default = "10.0.20.0/22"
 }
 
 variable "public_subnet_cidr" {
   type = string
   description = "CIDR block for Public Subnet"
-  default = "10.0.16.0/22"
+  default = "10.0.24.0/24"
 }
 
 variable "availability_zone_1" {
