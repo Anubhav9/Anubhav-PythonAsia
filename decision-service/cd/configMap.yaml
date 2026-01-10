@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: decision-service-config-map
+  labels:
+    operation: config-map
+data:
+  CREDIT_CHECK_URL: credit-check-service
+  DATABASE_USERNAME: custom_admin
