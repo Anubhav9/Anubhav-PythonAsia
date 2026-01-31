@@ -15,6 +15,7 @@ spec:
       labels:
         app: decision-service-pod
     spec:
+      serviceAccountName: sa-decision-service
       nodeSelector:
         node-type: public
       containers:
