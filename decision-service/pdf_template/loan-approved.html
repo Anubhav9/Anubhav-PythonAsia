@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Loan Approval</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 15px;
+        }
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+        td:first-child {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Dear {{ customer_name }},</h2>
+
+<p>
+    Greetings from PythonAsia Bank! We are pleased to inform you that your loan has been
+    conditionally approved. Our team will contact you separately for document verification.
+    Below is a summary of your loan:
+</p>
+
+<table>
+    <tr><td>Loan Application ID</td><td>{{application_id}}</td></tr>
+    <tr><td>Loan Type</td><td>{{ loan_type }}</td></tr>
+    <tr><td>Loan Amount</td><td>{{ loan_amount }}</td></tr>
+    <tr><td>Loan Tenure</td><td>{{ loan_tenure }}</td></tr>
+    <tr><td>Interest Rate</td><td>5% p.a.</td></tr>
+</table>
+
+<p>
+    Thank you for banking with us. We look forward to serving you again.
+</p>
+
+</body>
+</html>

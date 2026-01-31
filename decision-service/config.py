@@ -1,0 +1,6 @@
+deployment_platform="aws"
+AWS_DATABASE_HOST="terraform-20260124124653538300000003.ch8iia8ueiyz.ap-northeast-3.rds.amazonaws.com"
+GCP_DATABASE_HOST=""
+AWS_OBJECT_STORE_URL=""
+GCP_OBJECT_STORE_URL=""
+OBJECT_STORE_NAME="approval-letters-python-asia"

@@ -1,0 +1,217 @@
+{
+  "version": 4,
+  "terraform_version": "1.5.7",
+  "serial": 149,
+  "lineage": "052a1bf4-8840-a5cb-f289-868166aa99e3",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "aws_db_subnet_group",
+      "name": "python_asia_db_subnet_group",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:rds:ap-northeast-3:647118473721:subgrp:python_asia_db_subnet_group",
+            "description": "Managed by Terraform",
+            "id": "python_asia_db_subnet_group",
+            "name": "python_asia_db_subnet_group",
+            "name_prefix": "",
+            "region": "ap-northeast-3",
+            "subnet_ids": [
+              "subnet-097b1e85babbe861a",
+              "subnet-0e9f352fbd93552f9"
+            ],
+            "supported_network_types": [
+              "IPV4"
+            ],
+            "tags": {
+              "Name": "python-asia-db-subnet-group"
+            },
+            "tags_all": {
+              "Name": "python-asia-db-subnet-group"
+            },
+            "vpc_id": "vpc-0cfd2ce31ca086d2f"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_subnet.python_asia_private_subnet",
+            "aws_subnet.python_asia_private_subnet_2",
+            "aws_vpc.python_asia_vpc"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "python_asia_rds_security_group",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:ap-northeast-3:647118473721:security-group/sg-0c3207c7098392550",
+            "description": "Allow Ingress into RDS",
+            "egress": [],
+            "id": "sg-0c3207c7098392550",
+            "ingress": [],
+            "name": "RDS Security Group",
+            "name_prefix": "",
+            "owner_id": "647118473721",
+            "region": "ap-northeast-3",
+            "revoke_rules_on_delete": false,
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "vpc_id": "vpc-0cfd2ce31ca086d2f"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "aws_vpc.python_asia_vpc"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "python_asia_private_subnet",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:ap-northeast-3:647118473721:subnet/subnet-0e9f352fbd93552f9",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "ap-northeast-3a",
+            "availability_zone_id": "apne3-az3",
+            "cidr_block": "10.0.20.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0e9f352fbd93552f9",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "647118473721",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "region": "ap-northeast-3",
+            "tags": {
+              "Name": "python-asia-private-subnet"
+            },
+            "tags_all": {
+              "Name": "python-asia-private-subnet"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-0cfd2ce31ca086d2f"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.python_asia_vpc"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "python_asia_private_subnet_2",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:ap-northeast-3:647118473721:subnet/subnet-097b1e85babbe861a",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "ap-northeast-3b",
+            "availability_zone_id": "apne3-az1",
+            "cidr_block": "10.0.21.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-097b1e85babbe861a",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "647118473721",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "region": "ap-northeast-3",
+            "tags": {
+              "Name": "python-asia-private-subnet-2"
+            },
+            "tags_all": {
+              "Name": "python-asia-private-subnet-2"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-0cfd2ce31ca086d2f"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.python_asia_vpc"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_vpc",
+      "name": "python_asia_vpc",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:ap-northeast-3:647118473721:vpc/vpc-0cfd2ce31ca086d2f",
+            "assign_generated_ipv6_cidr_block": false,
+            "cidr_block": "10.0.16.0/20",
+            "default_network_acl_id": "acl-0543c285a20305cbe",
+            "default_route_table_id": "rtb-0b2a8cf04b51a7b06",
+            "default_security_group_id": "sg-002a51689e70f281e",
+            "dhcp_options_id": "dopt-0bd1ede4758dc9613",
+            "enable_dns_hostnames": false,
+            "enable_dns_support": true,
+            "enable_network_address_usage_metrics": false,
+            "id": "vpc-0cfd2ce31ca086d2f",
+            "instance_tenancy": "default",
+            "ipv4_ipam_pool_id": null,
+            "ipv4_netmask_length": null,
+            "ipv6_association_id": "",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_network_border_group": "",
+            "ipv6_ipam_pool_id": "",
+            "ipv6_netmask_length": 0,
+            "main_route_table_id": "rtb-0b2a8cf04b51a7b06",
+            "owner_id": "647118473721",
+            "region": "ap-northeast-3",
+            "tags": {
+              "Name": "python-asia-vpc"
+            },
+            "tags_all": {
+              "Name": "python-asia-vpc"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ=="
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

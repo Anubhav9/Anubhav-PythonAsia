@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decision-service-deployment
+  labels:
+    operations: decision-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: decision-service-pod
+  template:
+    metadata:
+      name: decision-service-pod
+      labels:
+        app: decision-service-pod
+    spec:
+      serviceAccountName: sa-decision-service
+      nodeSelector:
+        node-type: public
+      containers:
+        - name: deployment-service-image
+          image: anubhav83/decision-service:v20
+          livenessProbe:
+            httpGet:
+              path: "/api/v1/health"
+              port: 2212
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: "/api/v1/ready"
+              port: 2212
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          ports:
+            - containerPort: 2212
+          envFrom:
+            - configMapRef:
+                name: decision-service-config-map
+            - secretRef:
+                name: database-secret
+              

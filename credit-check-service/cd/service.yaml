@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: credit-check-service
+  labels:
+    app: credit-check-service
+spec:
+  selector:
+    app: credit-check-service
+  ports:
+    - protocol: TCP
+      port: 2112
+      targetPort: 2112
