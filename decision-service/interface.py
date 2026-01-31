@@ -27,12 +27,17 @@ def create_and_get_infra_details_map():
     ## All Nomenclature follow DEPLOYMENT_PLATFORM+INFRA. Add everything in the below section
     value_database_host_key = f"{current_deployment_platform}_DATABASE_HOST"
     value_database_host = getattr(config,value_database_host_key)
+    value_object_store_host_key=f"{current_deployment_platform}_OBJECT_STORE_URL"
+    value_object_store_host = getattr(config,value_object_store_host_key)
+    value_object_store_name=getattr(config,"OBJECT_STORE_NAME")
 
 
     ## All Infra Details needs to be updated here so that we have a single source
     infra_details_map = {}
     infra_details_map["deployment_platform"]=current_deployment_platform
     infra_details_map["database_host"]=value_database_host
+    infra_details_map["object_store_host"]=value_object_store_host
+    infra_details_map["object_store_name"]=value_object_store_name
 
     logging.debug(f"[INFRA_DETAILS_MAP]: The current infra details map is: {infra_details_map}")
     return infra_details_map
