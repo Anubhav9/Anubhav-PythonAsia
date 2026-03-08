@@ -168,3 +168,4 @@ jobs:
         run: |
           kubectl rollout status -n "${{ github.event.inputs.namespace }}" deployment/credit-check-service-deployment --timeout=300s
           kubectl rollout status -n "${{ github.event.inputs.namespace }}" deployment/decision-service-deployment --timeout=300s
+          
