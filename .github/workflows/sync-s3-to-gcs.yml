@@ -1,0 +1,147 @@
+name: Sync S3 To GCS (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Maximum approved records to evaluate"
+        required: true
+        default: "200"
+      dry_run:
+        description: "If true, do not copy objects"
+        required: true
+        default: "false"
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-northeast-3
+      AWS_DB_HOST: ${{ vars.AWS_DATABASE_HOST }}
+      DB_USERNAME: custom_admin
+      BUCKET_NAME: approval-letters-python-asia
+      GCP_PROJECT_ID: pythonasia-v1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install sync dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 google-cloud-storage psycopg2-binary
+
+      - name: Sync approved reports from S3 to GCS
+        shell: bash
+        env:
+          LIMIT: ${{ github.event.inputs.limit }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg2
+          import boto3
+          from botocore.exceptions import ClientError
+          from google.cloud import storage
+
+          limit = int(os.getenv("LIMIT", "200"))
+          dry_run = os.getenv("DRY_RUN", "false").strip().lower() == "true"
+          db_host = os.environ["AWS_DB_HOST"]
+          db_user = os.environ["DB_USERNAME"]
+          db_password = os.environ["DATABASE_PASSWORD"]
+          bucket_name = os.environ["BUCKET_NAME"]
+          region = os.environ["AWS_REGION"]
+
+          s3_client = boto3.client("s3", region_name=region)
+          gcs_client = storage.Client(project=os.environ["GCP_PROJECT_ID"])
+          gcs_bucket = gcs_client.bucket(bucket_name)
+
+          conn = psycopg2.connect(
+              dbname="postgres",
+              user=db_user,
+              password=db_password,
+              host=db_host,
+              port=5432,
+              connect_timeout=10,
+          )
+          conn.autocommit = True
+          cursor = conn.cursor()
+          cursor.execute(
+              """
+              SELECT application_id
+              FROM records
+              WHERE result = 'APPROVED'
+              ORDER BY application_id DESC
+              LIMIT %s
+              """,
+              (limit,),
+          )
+          rows = cursor.fetchall()
+
+          copied = 0
+          skipped = 0
+          failed = 0
+
+          for row in rows:
+              application_id = str(row[0])
+              key = f"reports/{application_id}_approval_report.pdf"
+
+              try:
+                  s3_client.head_object(Bucket=bucket_name, Key=key)
+              except ClientError:
+                  print(f"[WARN] Missing in S3, skipping: {key}")
+                  skipped += 1
+                  continue
+
+              gcs_blob = gcs_bucket.blob(key)
+              if gcs_blob.exists(gcs_client):
+                  print(f"[SKIP] Already present in GCS: {key}")
+                  skipped += 1
+                  continue
+
+              if dry_run:
+                  print(f"[DRY RUN] Would copy {key}")
+                  continue
+
+              try:
+                  s3_object = s3_client.get_object(Bucket=bucket_name, Key=key)
+                  payload = s3_object["Body"].read()
+                  gcs_blob.upload_from_string(payload, content_type="application/pdf")
+                  print(f"[COPY] Synced {key}")
+                  copied += 1
+              except Exception as e:
+                  print(f"[ERROR] Failed to sync {key}: {e}")
+                  failed += 1
+
+          cursor.close()
+          conn.close()
+
+          print("---- Sync Summary ----")
+          print(f"Dry run: {dry_run}")
+          print(f"Approved records checked: {len(rows)}")
+          print(f"Copied: {copied}")
+          print(f"Skipped: {skipped}")
+          print(f"Failed: {failed}")
+          PY

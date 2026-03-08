@@ -1,0 +1,170 @@
+name: CD Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: "Kubernetes namespace"
+        required: true
+        default: "default"
+      decision_image_tag:
+        description: "Decision service image tag"
+        required: true
+        default: "v20"
+      credit_image_tag:
+        description: "Credit-check service image tag"
+        required: true
+        default: "v6"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-northeast-3
+      EKS_CLUSTER_NAME: python-asia-eks-cluster
+      GCP_PROJECT_ID: pythonasia-v1
+      GKE_CLUSTER_NAME: python-asia-cluster
+      GKE_REGION: asia-northeast2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve deployment platform from config.py
+        id: platform
+        shell: bash
+        run: |
+          PLATFORM=$(python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          config_text = pathlib.Path("decision-service/config.py").read_text(encoding="utf-8")
+          match = re.search(r'DEPLOYMENT_PLATFORM",\s*"([^"]+)"\)', config_text)
+          if not match:
+              print("Unable to parse DEPLOYMENT_PLATFORM default from decision-service/config.py", file=sys.stderr)
+              sys.exit(1)
+          print(match.group(1).upper())
+          PY
+          )
+
+          if [ "$PLATFORM" != "AWS" ] && [ "$PLATFORM" != "GCP" ]; then
+            echo "Unsupported DEPLOYMENT_PLATFORM from config.py: $PLATFORM"
+            exit 1
+          fi
+
+          echo "deployment_platform=$PLATFORM" >> "$GITHUB_OUTPUT"
+          echo "Using deployment platform from config.py: $PLATFORM"
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure AWS credentials
+        if: steps.platform.outputs.deployment_platform == 'AWS'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl context for EKS
+        if: steps.platform.outputs.deployment_platform == 'AWS'
+        shell: bash
+        run: |
+          aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
+
+      - name: Authenticate to GCP
+        if: steps.platform.outputs.deployment_platform == 'GCP'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure kubectl context for GKE
+        if: steps.platform.outputs.deployment_platform == 'GCP'
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER_NAME }}
+          location: ${{ env.GKE_REGION }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Apply base manifests
+        shell: bash
+        run: |
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f credit-check-service/cd/credit-check-deployment.yaml
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f credit-check-service/cd/service.yaml
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/configMap.yaml
+
+      - name: Apply cloud-specific service account
+        shell: bash
+        run: |
+          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
+            kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/service_account_aws.yaml
+          else
+            kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/service_account_gcp.yaml
+          fi
+
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/deployment.yaml
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/service.yaml
+
+      - name: Upsert database secret from GitHub secret
+        shell: bash
+        run: |
+          kubectl create secret generic database-secret \
+            --namespace "${{ github.event.inputs.namespace }}" \
+            --from-literal=DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Set deployment env vars from selected platform
+        shell: bash
+        run: |
+          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
+            kubectl set env -n "${{ github.event.inputs.namespace }}" deployment/decision-service-deployment \
+              DEPLOYMENT_PLATFORM=AWS \
+              AWS_DATABASE_HOST="${{ vars.AWS_DATABASE_HOST }}" \
+              GCP_DATABASE_HOST=""
+          else
+            kubectl set env -n "${{ github.event.inputs.namespace }}" deployment/decision-service-deployment \
+              DEPLOYMENT_PLATFORM=GCP \
+              GCP_DATABASE_HOST="${{ vars.GCP_DATABASE_HOST }}" \
+              AWS_DATABASE_HOST=""
+          fi
+
+      - name: Apply and run DB migration job
+        shell: bash
+        run: |
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-configmap.yaml
+          kubectl delete job decision-service-db-migration -n "${{ github.event.inputs.namespace }}" --ignore-not-found=true
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-job.yaml
+
+          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
+            kubectl set env -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration \
+              DEPLOYMENT_PLATFORM=AWS \
+              AWS_DATABASE_HOST="${{ vars.AWS_DATABASE_HOST }}" \
+              GCP_DATABASE_HOST=""
+          else
+            kubectl set env -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration \
+              DEPLOYMENT_PLATFORM=GCP \
+              GCP_DATABASE_HOST="${{ vars.GCP_DATABASE_HOST }}" \
+              AWS_DATABASE_HOST=""
+          fi
+
+          kubectl wait --for=condition=complete --timeout=180s \
+            -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration
+          kubectl logs -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration
+
+      - name: Set container image tags
+        shell: bash
+        run: |
+          kubectl set image -n "${{ github.event.inputs.namespace }}" deployment/decision-service-deployment \
+            deployment-service-image="anubhav83/decision-service:${{ github.event.inputs.decision_image_tag }}"
+          kubectl set image -n "${{ github.event.inputs.namespace }}" deployment/credit-check-service-deployment \
+            credit-check-service="anubhav83/credit-check-service:${{ github.event.inputs.credit_image_tag }}"
+
+      - name: Wait for rollout
+        shell: bash
+        run: |
+          kubectl rollout status -n "${{ github.event.inputs.namespace }}" deployment/credit-check-service-deployment --timeout=300s
+          kubectl rollout status -n "${{ github.event.inputs.namespace }}" deployment/decision-service-deployment --timeout=300s

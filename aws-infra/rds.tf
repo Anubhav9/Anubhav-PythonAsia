@@ -8,6 +8,7 @@ resource "aws_db_subnet_group" "python_asia_db_subnet_group" {
 }
 
 resource "aws_db_instance" "python_asia_talk_rds_instance" {
+  identifier = "decision-service-db"
   allocated_storage = 20
   db_name = "pythonasiadb"
   engine = "postgres"

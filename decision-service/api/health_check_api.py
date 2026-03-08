@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import utils
+import interface
 
 
 health_check_api=Blueprint("health_check_api",__name__)
@@ -28,5 +29,24 @@ def invoke_readiness_check():
     else:
         response = {"status": "NOT READY"}
         return jsonify(response),503
+
+
+@health_check_api.route("/v1/platform", methods=["GET"])
+def get_platform_details():
+    """
+    Demo endpoint to show active cloud routing context.
+    :return: current deployment platform and resolved infra details.
+    """
+    current_platform = interface.get_current_deployment_platform()
+    if current_platform == "INVALID":
+        return jsonify(
+            {
+                "status": "INVALID",
+                "message": "Unsupported DEPLOYMENT_PLATFORM value. Allowed values: AWS, GCP",
+            }
+        ), 400
+
+    infra_details_map = interface.create_and_get_infra_details_map()
+    return jsonify({"status": "OK", "infra": infra_details_map}), 200
 
 

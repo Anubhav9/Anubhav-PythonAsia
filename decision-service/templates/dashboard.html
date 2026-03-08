@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Loan Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      h1 { margin-bottom: 4px; }
+      .platform { margin-bottom: 16px; font-weight: bold; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background-color: #f2f2f2; }
+      .status-available { color: #0b7a32; font-weight: bold; }
+      .status-missing { color: #a22; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h1>Approved Loan Applications</h1>
+    <div class="platform">Current Deployment Platform: {{ deployment_platform }}</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Application ID</th>
+          <th>Name</th>
+          <th>Loan Type</th>
+          <th>Loan Amount</th>
+          <th>Decision</th>
+          <th>Approval Letter</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in applications %}
+        <tr>
+          <td>{{ item.application_id }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.loan_type }}</td>
+          <td>{{ item.loan_amount }}</td>
+          <td>{{ item.decision }}</td>
+          <td>
+            {% if item.approval_letter_url %}
+            <a href="{{ item.approval_letter_url }}" target="_blank" rel="noopener noreferrer">Open</a>
+            {% else %}
+            Not available
+            {% endif %}
+          </td>
+          <td class="{{ 'status-available' if item.approval_letter_status == 'AVAILABLE' else 'status-missing' }}">
+            {{ item.approval_letter_status }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>
