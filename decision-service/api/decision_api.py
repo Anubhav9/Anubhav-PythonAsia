@@ -40,6 +40,13 @@ def invoke_decision():
     API Method to invoke decision service
     :return: Whether user is eligible for a loan or not.
     """
+    if utils.is_failure_mode_enabled(request):
+        response = {
+            "status": "SIMULATED_FAILURE",
+            "message": "Failure mode enabled via X-FAILURE-MODE header",
+        }
+        return jsonify(response), 503
+
     name=request.json.get("name")
     id_number=request.json.get("id_number")
     dob=request.json.get("dob")
@@ -86,6 +93,13 @@ def list_approved_applications():
     """
     API method to fetch approved applications with active-platform approval links.
     """
+    if utils.is_failure_mode_enabled(request):
+        response = {
+            "status": "SIMULATED_FAILURE",
+            "message": "Failure mode enabled via X-FAILURE-MODE header",
+        }
+        return jsonify(response), 503
+
     limit_value = request.args.get("limit", default=50, type=int)
     limit = max(1, min(limit_value, 200))
     current_platform, response_items = _fetch_approved_applications_with_active_links(limit)
@@ -103,6 +117,13 @@ def render_dashboard():
     """
     Render an operator dashboard for approved applications and active-platform links.
     """
+    if utils.is_failure_mode_enabled(request):
+        response = {
+            "status": "SIMULATED_FAILURE",
+            "message": "Failure mode enabled via X-FAILURE-MODE header",
+        }
+        return jsonify(response), 503
+
     limit = request.args.get("limit", default=50, type=int)
     limit = max(1, min(limit, 200))
     current_platform, response_items = _fetch_approved_applications_with_active_links(limit)

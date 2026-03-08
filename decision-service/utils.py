@@ -37,3 +37,11 @@ def get_creds_for_db():
     db_username=os.getenv("DATABASE_USERNAME","root")
     db_password=os.getenv("DATABASE_PASSWORD","password123")
     return db_username,db_password
+
+
+def is_failure_mode_enabled(request_object):
+    """
+    Request-scoped demo helper to simulate service failure.
+    """
+    failure_mode_value = request_object.headers.get("X-FAILURE-MODE", "false")
+    return failure_mode_value.strip().lower() == "true"
