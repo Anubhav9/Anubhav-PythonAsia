@@ -25,7 +25,7 @@ variable "python_asia_subnet_range" {
 variable "python_asia_gcs_bucket" {
   type        = string
   description = "Globally unique name for the GCS Bucket"
-  default     = "approval-letters-python-asia"
+  default     = "approval-letters-python-asia-2026-demo"
 }
 
 variable "python_asia_gcs_bucket_location" {
