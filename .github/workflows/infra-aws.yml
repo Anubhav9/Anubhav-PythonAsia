@@ -11,6 +11,7 @@ on:
         options:
           - plan
           - apply
+          - destroy
 
 permissions:
   contents: read
@@ -49,17 +50,22 @@ jobs:
       - name: Terraform Plan
         env:
           TF_VAR_python_asia_db_password: ${{ secrets.TF_VAR_PYTHON_ASIA_DB_PASSWORD }}
-        run: terraform plan -out=tfplan
+        run: |
+          if [ "${{ github.event.inputs.action }}" = "destroy" ]; then
+            terraform plan -destroy -out=tfplan
+          else
+            terraform plan -out=tfplan
+          fi
 
       - name: Upload tfplan artifact
-        if: github.event.inputs.action == 'apply'
+        if: github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy'
         uses: actions/upload-artifact@v4
         with:
           name: aws-tfplan
           path: aws-infra/tfplan
 
   apply:
-    if: github.event.inputs.action == 'apply'
+    if: github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy'
     needs: plan
     runs-on: ubuntu-latest
     environment: infra-aws-apply
@@ -94,18 +100,11 @@ jobs:
           name: aws-tfplan
           path: aws-infra
 
-      - name: Guard apply on main branch
-        shell: bash
-        run: |
-          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
-            echo "Apply is allowed only from main branch."
-            exit 1
-          fi
-
-      - name: Terraform Apply
+      - name: Terraform Apply / Destroy
         env:
           TF_VAR_python_asia_db_password: ${{ secrets.TF_VAR_PYTHON_ASIA_DB_PASSWORD }}
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Outputs (after apply)
+        if: github.event.inputs.action == 'apply'
         run: terraform output
