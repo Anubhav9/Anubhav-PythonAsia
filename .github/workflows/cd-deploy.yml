@@ -23,7 +23,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: ap-northeast-3
+      AWS_REGION: ap-northeast-1
       EKS_CLUSTER_NAME: python-asia-eks-cluster
       GCP_PROJECT_ID: pythonasia-v1
       GKE_CLUSTER_NAME: python-asia-cluster
