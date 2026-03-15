@@ -57,3 +57,9 @@ variable "python_asia_db_password" {
   description = "RDS Password"
 }
 
+variable "object_store_bucket_name" {
+  type        = string
+  description = "Global bucket name for approval letters object store"
+  default     = "approval-letters-python-asia-2026-demo"
+}
+
