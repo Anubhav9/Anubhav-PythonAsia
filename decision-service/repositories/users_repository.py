@@ -45,3 +45,37 @@ def insert_user_record_to_database(application_id, username, password,
         cursor.close()
         conn_object.close()
         return -1
+
+
+def fetch_approved_applications(username, password, limit=50):
+    """
+    Fetch latest approved applications from records table.
+    :return: list of records or empty list on failure.
+    """
+    result, conn_object = connect_to_database(username, password)
+    if result == -1:
+        logging.error("[Database Read Operation]: Could not connect to database")
+        return []
+
+    cursor = conn_object.cursor()
+    try:
+        cursor.execute(constants.SELECT_APPROVED_APPLICATIONS_SQL, (limit,))
+        rows = cursor.fetchall()
+        response = []
+        for row in rows:
+            response.append(
+                {
+                    "application_id": str(row[0]),
+                    "name": row[1],
+                    "loan_type": row[2],
+                    "loan_amount": row[3],
+                    "decision": row[4],
+                }
+            )
+        return response
+    except Exception as e:
+        logging.error(f"[Database Read Operation]: Failed to fetch approved records. Exception is {e}")
+        return []
+    finally:
+        cursor.close()
+        conn_object.close()

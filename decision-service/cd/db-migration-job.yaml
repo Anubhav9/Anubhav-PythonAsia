@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: decision-service-db-migration
+  labels:
+    operation: db-migration
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: db-migration
+          image: postgres:16
+          env:
+            - name: DATABASE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: decision-service-config-map
+                  key: DATABASE_USERNAME
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: DATABASE_PASSWORD
+            - name: DEPLOYMENT_PLATFORM
+              value: "AWS"
+            - name: AWS_DATABASE_HOST
+              value: ""
+            - name: GCP_DATABASE_HOST
+              value: ""
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ "$DEPLOYMENT_PLATFORM" = "AWS" ]; then
+                DB_HOST="$AWS_DATABASE_HOST"
+              else
+                DB_HOST="$GCP_DATABASE_HOST"
+              fi
+              if [ -z "$DB_HOST" ]; then
+                echo "DB host is empty for DEPLOYMENT_PLATFORM=$DEPLOYMENT_PLATFORM"
+                exit 1
+              fi
+              export PGPASSWORD="$DATABASE_PASSWORD"
+              psql -h "$DB_HOST" -U "$DATABASE_USERNAME" -d postgres -f /migrations/001_init_records.sql
+          volumeMounts:
+            - name: migration-sql
+              mountPath: /migrations
+              readOnly: true
+      volumes:
+        - name: migration-sql
+          configMap:
+            name: decision-service-db-migrations

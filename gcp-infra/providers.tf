@@ -1,4 +1,4 @@
 provider "google" {
-  project     = "pythonasia-v1"
-  region      = "asia-northeast2"
+  project = var.python_asia_gcp_project_id
+  region  = var.python_asia_region
 }
