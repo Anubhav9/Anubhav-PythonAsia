@@ -2,7 +2,7 @@ resource "aws_eks_cluster" "python_asia_eks_cluster" {
   name = "${var.python_asia_nomenclature}-eks-cluster"
 
   access_config {
-    authentication_mode = "API"
+    authentication_mode                         = "API"
     bootstrap_cluster_creator_admin_permissions = true
   }
 
@@ -25,7 +25,7 @@ resource "aws_eks_cluster" "python_asia_eks_cluster" {
 }
 
 resource "aws_iam_role" "cluster" {
-  name = "eks-cluster-example"
+  name = "${var.python_asia_nomenclature}-eks-cluster-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
