@@ -5,7 +5,7 @@ resource "google_storage_bucket" "python-asia-gcs" {
   public_access_prevention    = "enforced"
   labels = {
     project = "${var.python_asia_nomenclature}-project"
-    owner   = "Anubhav Sanyal"
+    owner   = "anubhav-sanyal"
     env     = "dev"
   }
 }
