@@ -13,39 +13,42 @@ resource "google_container_cluster" "python_asia_cluster" {
 
 resource "google_container_node_pool" "public_node" {
   name           = "${var.python_asia_nomenclature}-public-node"
-  location       = "asia-northeast2"
+  location       = var.python_asia_region
   cluster        = google_container_cluster.python_asia_cluster.id
   node_count     = 1
-  node_locations = ["asia-northeast2-c"]
+  node_locations = ["${var.python_asia_region}-c"]
 
   node_config {
-    preemptible  = true
+    preemptible  = false
     machine_type = "e2-medium"
     labels = {
-      env = "dev"
+      env       = "dev"
+      node-type = "public"
     }
-
   }
 
+  depends_on = [google_compute_router_nat.nat-gateway]
 }
 
 resource "google_container_node_pool" "private_node" {
   name           = "${var.python_asia_nomenclature}-private-node"
-  location       = "asia-northeast2"
+  location       = var.python_asia_region
   cluster        = google_container_cluster.python_asia_cluster.id
   node_count     = 1
-  node_locations = ["asia-northeast2-c"]
+  node_locations = ["${var.python_asia_region}-c"]
 
   node_config {
-    preemptible  = true
+    preemptible  = false
     machine_type = "e2-medium"
     labels = {
-      env = "dev"
+      env       = "dev"
+      node-type = "private"
     }
-
   }
+
   network_config {
     enable_private_nodes = true
   }
 
+  depends_on = [google_compute_router_nat.nat-gateway]
 }
