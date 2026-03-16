@@ -12,6 +12,9 @@ resource "aws_eks_node_group" "python_asia_private_nodegroup" {
 
   instance_types = ["t3.medium"]
   capacity_type  = "ON_DEMAND"
+  labels = {
+    node-type = "private"
+  }
 
   depends_on = [
     aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
@@ -34,6 +37,9 @@ resource "aws_eks_node_group" "python_asia_public_nodegroup" {
 
   instance_types = ["t3.medium"]
   capacity_type  = "ON_DEMAND"
+  labels = {
+    node-type = "public"
+  }
 
   depends_on = [
     aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
