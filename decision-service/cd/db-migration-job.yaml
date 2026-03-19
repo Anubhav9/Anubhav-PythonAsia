@@ -24,11 +24,20 @@ spec:
                   name: database-secret
                   key: DATABASE_PASSWORD
             - name: DEPLOYMENT_PLATFORM
-              value: "${MIGRATION_PLATFORM}"
+              valueFrom:
+                configMapKeyRef:
+                  name: migration-config
+                  key: DEPLOYMENT_PLATFORM
             - name: AWS_DATABASE_HOST
-              value: "${MIGRATION_AWS_DB_HOST}"
+              valueFrom:
+                configMapKeyRef:
+                  name: migration-config
+                  key: AWS_DATABASE_HOST
             - name: GCP_DATABASE_HOST
-              value: "${MIGRATION_GCP_DB_HOST}"
+              valueFrom:
+                configMapKeyRef:
+                  name: migration-config
+                  key: GCP_DATABASE_HOST
           command: ["/bin/sh", "-c"]
           args:
             - |
