@@ -135,21 +135,21 @@ jobs:
       - name: Apply and run DB migration job
         shell: bash
         run: |
+          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
+            export MIGRATION_PLATFORM="AWS"
+            export MIGRATION_AWS_DB_HOST="${{ vars.AWS_DATABASE_HOST }}"
+            export MIGRATION_GCP_DB_HOST=""
+          else
+            export MIGRATION_PLATFORM="GCP"
+            export MIGRATION_AWS_DB_HOST=""
+            export MIGRATION_GCP_DB_HOST="${{ vars.GCP_DATABASE_HOST }}"
+          fi
+
           kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-configmap.yaml
           kubectl delete job decision-service-db-migration -n "${{ github.event.inputs.namespace }}" --ignore-not-found=true
-          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-job.yaml
 
-          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
-            kubectl set env -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration \
-              DEPLOYMENT_PLATFORM=AWS \
-              AWS_DATABASE_HOST="${{ vars.AWS_DATABASE_HOST }}" \
-              GCP_DATABASE_HOST=""
-          else
-            kubectl set env -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration \
-              DEPLOYMENT_PLATFORM=GCP \
-              GCP_DATABASE_HOST="${{ vars.GCP_DATABASE_HOST }}" \
-              AWS_DATABASE_HOST=""
-          fi
+          envsubst < decision-service/cd/db-migration-job.yaml \
+            | kubectl apply -n "${{ github.event.inputs.namespace }}" -f -
 
           kubectl wait --for=condition=complete --timeout=180s \
             -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration
