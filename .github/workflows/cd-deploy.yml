@@ -136,20 +136,25 @@ jobs:
         shell: bash
         run: |
           if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
-            export MIGRATION_PLATFORM="AWS"
-            export MIGRATION_AWS_DB_HOST="${{ vars.AWS_DATABASE_HOST }}"
-            export MIGRATION_GCP_DB_HOST=""
+            PLATFORM="AWS"
+            AWS_DB_HOST="${{ vars.AWS_DATABASE_HOST }}"
+            GCP_DB_HOST=""
           else
-            export MIGRATION_PLATFORM="GCP"
-            export MIGRATION_AWS_DB_HOST=""
-            export MIGRATION_GCP_DB_HOST="${{ vars.GCP_DATABASE_HOST }}"
+            PLATFORM="GCP"
+            AWS_DB_HOST=""
+            GCP_DB_HOST="${{ vars.GCP_DATABASE_HOST }}"
           fi
+
+          kubectl create configmap migration-config \
+            --namespace "${{ github.event.inputs.namespace }}" \
+            --from-literal=DEPLOYMENT_PLATFORM="$PLATFORM" \
+            --from-literal=AWS_DATABASE_HOST="$AWS_DB_HOST" \
+            --from-literal=GCP_DATABASE_HOST="$GCP_DB_HOST" \
+            --dry-run=client -o yaml | kubectl apply -f -
 
           kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-configmap.yaml
           kubectl delete job decision-service-db-migration -n "${{ github.event.inputs.namespace }}" --ignore-not-found=true
-
-          envsubst < decision-service/cd/db-migration-job.yaml \
-            | kubectl apply -n "${{ github.event.inputs.namespace }}" -f -
+          kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-job.yaml
 
           kubectl wait --for=condition=complete --timeout=180s \
             -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration
