@@ -34,15 +34,14 @@ def invoke_readiness_check():
         }
         return jsonify(response), 503
 
-    credit_check_service_health_result=utils.health_check_call_to_credit_check_service()
-    database_health_check_result=utils.health_check_for_db_service()
-    final_result = credit_check_service_health_result*database_health_check_result
-    if final_result==1:
+    credit_check_service_health_result = utils.health_check_call_to_credit_check_service()
+    database_health_check_result = utils.health_check_for_db_service()
+    if credit_check_service_health_result == 1 and database_health_check_result == 1:
         response = {"status": "READY"}
-        return jsonify(response),200
+        return jsonify(response), 200
     else:
         response = {"status": "NOT READY"}
-        return jsonify(response),503
+        return jsonify(response), 503
 
 
 @health_check_api.route("/v1/platform", methods=["GET"])
