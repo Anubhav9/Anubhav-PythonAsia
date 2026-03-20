@@ -4,5 +4,5 @@ resource "aws_vpc" "python_asia_vpc" {
     Name = "${var.python_asia_nomenclature}-vpc"
 
   }
-  
+
 }

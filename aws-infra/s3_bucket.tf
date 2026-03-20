@@ -1,7 +1,7 @@
 resource "aws_s3_bucket" "python_asia_bucket" {
-  bucket = "approval-letters-${var.python_asia_nomenclature}"
+  bucket = var.object_store_bucket_name
   tags = {
-    Name = "approval-letters-${var.python_asia_nomenclature}"
+    Name = var.object_store_bucket_name
   }
 }
 

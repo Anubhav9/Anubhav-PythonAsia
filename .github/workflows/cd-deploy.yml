@@ -23,11 +23,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: ap-northeast-3
+      AWS_REGION: ap-northeast-1
       EKS_CLUSTER_NAME: python-asia-eks-cluster
-      GCP_PROJECT_ID: pythonasia-v1
+      GCP_PROJECT_ID: pythonasia-v2
       GKE_CLUSTER_NAME: python-asia-cluster
-      GKE_REGION: asia-northeast2
+      GKE_REGION: asia-northeast1
 
     steps:
       - name: Checkout
@@ -135,21 +135,26 @@ jobs:
       - name: Apply and run DB migration job
         shell: bash
         run: |
+          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
+            PLATFORM="AWS"
+            AWS_DB_HOST="${{ vars.AWS_DATABASE_HOST }}"
+            GCP_DB_HOST=""
+          else
+            PLATFORM="GCP"
+            AWS_DB_HOST=""
+            GCP_DB_HOST="${{ vars.GCP_DATABASE_HOST }}"
+          fi
+
+          kubectl create configmap migration-config \
+            --namespace "${{ github.event.inputs.namespace }}" \
+            --from-literal=DEPLOYMENT_PLATFORM="$PLATFORM" \
+            --from-literal=AWS_DATABASE_HOST="$AWS_DB_HOST" \
+            --from-literal=GCP_DATABASE_HOST="$GCP_DB_HOST" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
           kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-configmap.yaml
           kubectl delete job decision-service-db-migration -n "${{ github.event.inputs.namespace }}" --ignore-not-found=true
           kubectl apply -n "${{ github.event.inputs.namespace }}" -f decision-service/cd/db-migration-job.yaml
-
-          if [ "${{ steps.platform.outputs.deployment_platform }}" = "AWS" ]; then
-            kubectl set env -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration \
-              DEPLOYMENT_PLATFORM=AWS \
-              AWS_DATABASE_HOST="${{ vars.AWS_DATABASE_HOST }}" \
-              GCP_DATABASE_HOST=""
-          else
-            kubectl set env -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration \
-              DEPLOYMENT_PLATFORM=GCP \
-              GCP_DATABASE_HOST="${{ vars.GCP_DATABASE_HOST }}" \
-              AWS_DATABASE_HOST=""
-          fi
 
           kubectl wait --for=condition=complete --timeout=180s \
             -n "${{ github.event.inputs.namespace }}" job/decision-service-db-migration

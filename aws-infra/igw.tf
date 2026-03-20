@@ -3,5 +3,5 @@ resource "aws_internet_gateway" "python_asia_internet_gateway" {
   tags = {
     Name = "${var.python_asia_nomenclature}-internet-gateway"
   }
-  
+
 }

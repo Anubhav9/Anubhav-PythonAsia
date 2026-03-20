@@ -7,13 +7,13 @@ variable "python_asia_nomenclature" {
 variable "python_asia_gcp_project_id" {
   type        = string
   description = "GCP project id for Python Asia infrastructure"
-  default     = "pythonasia-v1"
+  default     = "pythonasia-v2"
 }
 
 variable "python_asia_region" {
   type        = string
   description = "Primary GCP region"
-  default     = "asia-northeast2"
+  default     = "asia-northeast1"
 }
 
 variable "python_asia_subnet_range" {
@@ -25,13 +25,13 @@ variable "python_asia_subnet_range" {
 variable "python_asia_gcs_bucket" {
   type        = string
   description = "Globally unique name for the GCS Bucket"
-  default     = "approval-letters-python-asia"
+  default     = "approval-letters-python-asia-2026-demo"
 }
 
 variable "python_asia_gcs_bucket_location" {
   type        = string
   description = "Region for GCS Bucket for Python Asia"
-  default     = "ASIA-NORTHEAST2"
+  default     = "ASIA-NORTHEAST1"
 }
 
 variable "python_asia_db_password" {

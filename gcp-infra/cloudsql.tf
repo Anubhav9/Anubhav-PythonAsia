@@ -33,7 +33,8 @@ resource "google_sql_database_instance" "python_asia_postgres" {
   deletion_protection = false
 
   settings {
-    tier = "db-f1-micro"
+    tier    = "db-custom-1-3840"
+    edition = "ENTERPRISE"
 
     ip_configuration {
       ipv4_enabled    = false

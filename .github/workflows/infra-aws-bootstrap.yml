@@ -1,0 +1,71 @@
+name: AWS Infra Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Terraform action to run"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - apply
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-northeast-1
+      TF_IN_AUTOMATION: true
+
+    defaults:
+      run:
+        working-directory: aws-infra-bootstrap
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate backend naming variables
+        shell: bash
+        run: |
+          if [ -z "${{ vars.AWS_TF_STATE_BUCKET }}" ] || [ -z "${{ vars.AWS_TF_LOCK_TABLE }}" ]; then
+            echo "Set repository variables AWS_TF_STATE_BUCKET and AWS_TF_LOCK_TABLE before running bootstrap."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="state_bucket_name=${{ vars.AWS_TF_STATE_BUCKET }}" \
+            -var="lock_table_name=${{ vars.AWS_TF_LOCK_TABLE }}" \
+            -out=tfplan
+
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Outputs (after apply)
+        if: github.event.inputs.action == 'apply'
+        run: terraform output

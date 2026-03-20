@@ -5,10 +5,8 @@ terraform {
       version = "~> 6.0"
     }
   }
-  backend "s3" {}
 }
 
-# Configure the AWS Provider
 provider "aws" {
-  region = "ap-northeast-1"
+  region = var.aws_region
 }

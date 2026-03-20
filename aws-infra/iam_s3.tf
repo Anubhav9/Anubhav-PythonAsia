@@ -25,14 +25,14 @@ resource "aws_iam_policy" "python_asia_s3_bucket_iam_policy" {
       }
     ]
   })
-  
+
 }
 
 
 
 # OIDC issuer URL from the cluster
 locals {
-  oidc_host_path  = replace(local.oidc_issuer_url, "https://", "")
+  oidc_host_path = replace(local.oidc_issuer_url, "https://", "")
 }
 
 
@@ -60,7 +60,7 @@ resource "aws_iam_role" "pod_for_s3_rw" {
 }
 
 resource "aws_iam_role_policy_attachment" "python_asia_s3_bucket_role_policy_attachment" {
-  role = aws_iam_role.pod_for_s3_rw.id
+  role       = aws_iam_role.pod_for_s3_rw.id
   policy_arn = aws_iam_policy.python_asia_s3_bucket_iam_policy.arn
-  
+
 }
