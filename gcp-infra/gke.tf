@@ -1,5 +1,6 @@
 resource "google_container_cluster" "python_asia_cluster" {
   name                     = "${var.python_asia_nomenclature}-cluster"
+  location                 = "${var.python_asia_region}-c"
   network                  = google_compute_network.python_asia_vpc.id
   subnetwork               = google_compute_subnetwork.python_asia_subnet.id
   remove_default_node_pool = true
