@@ -27,7 +27,7 @@ jobs:
       EKS_CLUSTER_NAME: python-asia-eks-cluster
       GCP_PROJECT_ID: pythonasia-v1
       GKE_CLUSTER_NAME: python-asia-cluster
-      GKE_REGION: asia-northeast2
+      GKE_REGION: asia-northeast1
 
     steps:
       - name: Checkout
