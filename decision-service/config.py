@@ -1,7 +1,7 @@
 import os
 
 # Runtime cloud selector for multi-cloud demos.
-deployment_platform = os.getenv("DEPLOYMENT_PLATFORM", "AWS")
+deployment_platform = os.getenv("DEPLOYMENT_PLATFORM", "GCP")
 
 # Infra endpoints can be injected at runtime, keeping defaults for local/demo use.
 AWS_DATABASE_HOST = os.getenv("AWS_DATABASE_HOST", "")
