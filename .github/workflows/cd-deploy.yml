@@ -25,7 +25,7 @@ jobs:
     env:
       AWS_REGION: ap-northeast-1
       EKS_CLUSTER_NAME: python-asia-eks-cluster
-      GCP_PROJECT_ID: pythonasia-v1
+      GCP_PROJECT_ID: pythonasia-v2
       GKE_CLUSTER_NAME: python-asia-cluster
       GKE_REGION: asia-northeast1
 
