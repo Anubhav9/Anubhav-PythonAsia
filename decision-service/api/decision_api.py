@@ -76,6 +76,7 @@ def invoke_decision():
         result_insert_into_db=users_repository.insert_user_record_to_database(str(application_id),username,password,name,id_number,dob,loan_type,loan_tenure,loan_amount,"APPROVED")
         if result_insert_into_db==-1:
             logging.error(f"[Business Logic Result]: Insertion into database has failed for user with application_id {application_id}")
+        object_operations.insert_into_object_store(str(application_id),name,loan_type,loan_amount,loan_tenure)
         return jsonify(final_response),200
     if result_decision_logic==-1:
         logging.info(f"[Business Logic Result]: Loan is not approved for user")
