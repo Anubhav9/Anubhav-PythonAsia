@@ -11,12 +11,13 @@ on:
         options:
           - plan
           - apply
+          - destroy
 
 permissions:
   contents: read
 
 jobs:
-  terraform:
+  plan:
     runs-on: ubuntu-latest
     env:
       TF_IN_AUTOMATION: true
@@ -38,7 +39,11 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.GCP_TF_STATE_BUCKET }}" \
+            -backend-config="prefix=gcp-infra" \
+            -reconfigure
 
       - name: Terraform Validate
         run: terraform validate
@@ -46,10 +51,38 @@ jobs:
       - name: Terraform Plan
         env:
           TF_VAR_python_asia_db_password: ${{ secrets.TF_VAR_PYTHON_ASIA_DB_PASSWORD }}
-        run: terraform plan -out=tfplan
+        run: |
+          if [ "${{ github.event.inputs.action }}" = "destroy" ]; then
+            terraform plan -destroy -out=tfplan
+          else
+            terraform plan -out=tfplan
+          fi
+
+  apply:
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy'
+    environment: infra-gcp-apply
+    env:
+      TF_IN_AUTOMATION: true
+
+    defaults:
+      run:
+        working-directory: gcp-infra
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Guard apply on main branch
-        if: github.event.inputs.action == 'apply'
         shell: bash
         run: |
           if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
@@ -57,11 +90,22 @@ jobs:
             exit 1
           fi
 
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.GCP_TF_STATE_BUCKET }}" \
+            -backend-config="prefix=gcp-infra" \
+            -reconfigure
+
       - name: Terraform Apply
-        if: github.event.inputs.action == 'apply'
         env:
           TF_VAR_python_asia_db_password: ${{ secrets.TF_VAR_PYTHON_ASIA_DB_PASSWORD }}
-        run: terraform apply -auto-approve tfplan
+        run: |
+          if [ "${{ github.event.inputs.action }}" = "destroy" ]; then
+            terraform destroy -auto-approve
+          else
+            terraform apply -auto-approve
+          fi
 
       - name: Terraform Outputs (after apply)
         if: github.event.inputs.action == 'apply'
