@@ -23,7 +23,7 @@ jobs:
       AWS_DB_HOST: ${{ vars.AWS_DATABASE_HOST }}
       DB_USERNAME: custom_admin
       BUCKET_NAME: approval-letters-python-asia-2026-demo
-      GCP_PROJECT_ID: pythonasia-v1
+      GCP_PROJECT_ID: pythonasia-v2
 
     steps:
       - name: Checkout
