@@ -7,7 +7,7 @@ variable "python_asia_nomenclature" {
 variable "python_asia_gcp_project_id" {
   type        = string
   description = "GCP project id for Python Asia infrastructure"
-  default     = "pythonasia-v1"
+  default     = "pythonasia-v2"
 }
 
 variable "python_asia_region" {
