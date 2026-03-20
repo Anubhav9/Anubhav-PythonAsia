@@ -1,6 +1,6 @@
 resource "google_container_cluster" "python_asia_cluster" {
   name                     = "${var.python_asia_nomenclature}-cluster"
-  location                 = "${var.python_asia_region}-c"
+  location                 = "${var.python_asia_region}-a"
   network                  = google_compute_network.python_asia_vpc.id
   subnetwork               = google_compute_subnetwork.python_asia_subnet.id
   remove_default_node_pool = true
@@ -17,7 +17,7 @@ resource "google_container_node_pool" "public_node" {
   location       = var.python_asia_region
   cluster        = google_container_cluster.python_asia_cluster.id
   node_count     = 1
-  node_locations = ["${var.python_asia_region}-c"]
+  node_locations = ["${var.python_asia_region}-a"]
 
   node_config {
     preemptible  = false
@@ -36,7 +36,7 @@ resource "google_container_node_pool" "private_node" {
   location       = var.python_asia_region
   cluster        = google_container_cluster.python_asia_cluster.id
   node_count     = 1
-  node_locations = ["${var.python_asia_region}-c"]
+  node_locations = ["${var.python_asia_region}-a"]
 
   node_config {
     preemptible  = false
